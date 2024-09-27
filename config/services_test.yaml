@@ -1,0 +1,3 @@
+services:
+    # Mock services or services specifically for the test environment
+    Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface: '@security.user_password_hasher'

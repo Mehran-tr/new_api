@@ -1,16 +1,46 @@
-# see https://symfony.com/doc/current/reference/configuration/framework.html
+## see https://symfony.com/doc/current/reference/configuration/framework.html
+#framework:
+#    secret: '%env(APP_SECRET)%'
+#    #csrf_protection: true
+#
+#    # Note that the session will be started ONLY if you read or write from it.
+##    router:
+##        resource: '%kernel.project_dir%/config/routes.yaml'
+##        type: annotation
+##    annotations:
+##        enabled: true
+#    #esi: true
+#    #fragments: true
+#
+#when@test:
+#    framework:
+#        test: true
+#        session:
+#            storage_factory_id: session.storage.factory.mock_file
 framework:
     secret: '%env(APP_SECRET)%'
     #csrf_protection: true
 
     # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    #router:
+    #    resource: '%kernel.project_dir%/config/routes.yaml'
+    #    type: annotation
+    #annotations:
+    #    enabled: false  # Make sure annotations are disabled
 
     #esi: true
     #fragments: true
 
+# Test environment configuration
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+
+    # Example: Custom environment variables for the test environment
+    # This assumes you have `.env.test` set up for your test environment
+    # and you want to ensure the test environment uses them.
+    doctrine:
+        dbal:
+            url: '%env(resolve:DATABASE_URL)%'
