@@ -3,17 +3,39 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\Repository\UserRepository;
-use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use App\Repository\UserRepository;
 use App\Enum\Role;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ApiResource]
-#[UniqueEntity(fields: ['name'], message: 'This name is already used.')]
-class User implements UserInterface
+#[ORM\Table(name: 'users')]
+#[UniqueEntity('name')]
+#[ApiResource(
+
+    operations: [
+        new GetCollection(
+            security: "is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_COMPANY_ADMIN') or is_granted('ROLE_USER')"
+        ),
+        new Get(
+            security: "is_granted('ROLE_SUPER_ADMIN') or (is_granted('ROLE_COMPANY_ADMIN') or is_granted('ROLE_USER') and object.company == user.company)"
+        ),
+        new Post(
+            security: "is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_COMPANY_ADMIN')"
+        ),
+        new Delete(
+            security: "is_granted('ROLE_SUPER_ADMIN')"
+        ),
+    ]
+)]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -29,7 +51,10 @@ class User implements UserInterface
     )]
     private string $name;
 
-    #[ORM\Column(type: 'string', enumType: Role::class)]
+    #[ORM\Column(type: 'string', length: 255)]
+    private string $password;
+
+    #[ORM\Column(type: 'string', enumType: Role::class, length: 50)]
     #[Assert\NotBlank]
     private Role $role;
 
@@ -37,7 +62,7 @@ class User implements UserInterface
     #[ORM\JoinColumn(nullable: true)]
     private ?Company $company = null;
 
-    // Getters and Setters
+
 
     public function getId(): ?int
     {
@@ -52,6 +77,18 @@ class User implements UserInterface
     public function setName(string $name): self
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
 
         return $this;
     }
@@ -80,31 +117,22 @@ class User implements UserInterface
         return $this;
     }
 
-    // UserInterface methods
-
-    public function getUserIdentifier(): string
-    {
-        return $this->name;
-    }
-
     public function getRoles(): array
     {
         return [$this->role->value];
     }
 
-    public function getPassword(): ?string
+    public function getUserIdentifier(): string
     {
-        // Assuming no password management for this API-only user
-        return null;
+        return $this->name; // Use name as the user identifier
+    }
+
+    public function eraseCredentials(): void
+    {
     }
 
     public function getSalt(): ?string
     {
         return null;
-    }
-
-    public function eraseCredentials(): void
-    {
-        // Not used for this entity
     }
 }
