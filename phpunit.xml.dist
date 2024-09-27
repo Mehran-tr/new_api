@@ -11,7 +11,6 @@
         <env name="APP_ENV" value="test"/>
         <env name="KERNEL_CLASS" value="App\Kernel"/>
         <env name="CORS_ALLOW_ORIGIN" value="*" />
-        <env name="DATABASE_URL" value="postgresql://myuser:mehran@127.0.0.1:5432/test_db_name"/>
     </php>
 
     <testsuites>
